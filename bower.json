@@ -1,0 +1,40 @@
+{
+  "name": "dak0rn.github.io",
+  "version": "1.0.1",
+  "authors": [
+    "dak0rn"
+  ],
+  "description": "Page for dak0rn.github.io",
+  "main": "index.html",
+  "moduleType": [
+    "amd"
+  ],
+  "keywords": [
+    "dak0rn",
+    "github"
+  ],
+  "license": "MIT",
+  "homepage": "https://dak0rn.github.io/",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "resolutions": {
+    "underscore": "~1.7.0"
+  },
+  "dependencies": {
+    "backbone": "~1.1.2",
+    "marionette": "~2.3.2",
+    "underscore": "~1.7.0",
+    "jquery": "1.11.2",
+    "backbone.radio": "~0.9.0",
+    "normalize.css": "~3.0.2",
+    "requirejs-text": "~2.0.13",
+    "fullpage.js": "~2.5.6",
+    "requirejs": "~2.1.15"
+  }
+}
