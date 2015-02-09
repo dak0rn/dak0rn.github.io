@@ -93,7 +93,7 @@ ul.push-2 li, ol.push-2 li { margin-left: 2rem; }
     .sl-2 { font-size: 1.2rem; }
     
     .project-description {
-        display: none;
+        display: none !important;
     }
 }
 
