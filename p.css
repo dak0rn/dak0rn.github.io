@@ -91,6 +91,10 @@ ul.push-2 li, ol.push-2 li { margin-left: 2rem; }
     .sl-4 { font-size: 2rem; }
     .sl-3 { font-size: 1.5rem; }
     .sl-2 { font-size: 1.2rem; }
+    
+    .project-description {
+        display: none;
+    }
 }
 
 #images div img {
