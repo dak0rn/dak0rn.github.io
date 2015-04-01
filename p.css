@@ -107,6 +107,9 @@ ul.push-2 li, ol.push-2 li { margin-left: 2rem; }
 .project-image {
     display: block;
     margin: 0 auto;
+    max-width: 64px;
+    max-height: 64px;
+    border-radius: 50%;
 }
 
 .project-title {
@@ -121,6 +124,7 @@ a.project-box:visited {
     border: none;
     color: #fff;
 }
+
 
 .project-description {
     font-size: 110%;
