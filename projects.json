@@ -1,4 +1,5 @@
 [
+    { "title": "metacarattere", "url":"https://dak0rn.github.io/espressojs", "image": "https://dak0rn.github.io/espressojs/espressojs.png", "desc":"A framework to build REST APIs in node.js that uses cascading resource handling" },
     { "title": "metacarattere", "url":"https://dak0rn.github.io/metacarattere", "image": "/img/p/github.png", "desc":"A small URL pattern matcher" },
     { "title": "grunt-recursively-load-tasks", "url":"https://github.com/dak0rn/grunt-recursively-load-tasks", "image": "/img/p/github.png", "desc":"A simple 'plugin' for grunt that allows you to load modules from parent directories as npm does" },
     { "title": "require.Sandbox", "url":"https://github.com/SuitSoft/require.Sandbox", "image": "/img/p/github.png", "desc":"A flexible sandbox for require.js w/out dependencies that can be use to make modularized applications more stable and secure. Licensed under MIT and available for free." },
