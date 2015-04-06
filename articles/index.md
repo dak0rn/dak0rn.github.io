@@ -1,12 +1,8 @@
 ---
-title: Hello world
+title: welcome
 author: dak0rn
-date: "2015-04-06 08:00"
+date: "2015-04-06 20:25"
 ---
 
-# Hello, world
-This is the index.md article
-
-```javascript
-// Github code?
-```
+This is a test for the new design. It may have already
+been disappeared the next time you come around.
