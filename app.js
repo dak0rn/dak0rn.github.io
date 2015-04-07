@@ -5,6 +5,7 @@
  */
 (function(Backbone, Marionette, $, _){
 
+    // Classes
     var Post = Backbone.Model.extend({
 
         defaults: {
@@ -55,31 +56,6 @@
         tagName: 'section',
         childView: ArticleView
     });
-
-    var app = new Marionette.Application();
-    app.layout = new Marionette.LayoutView({
-        el: 'body',
-
-        regions: {
-            'main': 'main',
-            'header': 'header'
-        }
-    });
-
-    var headerView = new (Marionette.ItemView.extend({
-        template: _.template('<a href="https://65535th.com">65535th</a>'),
-
-        events: {
-            'click a': 'home'
-        },
-
-        home: function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            app.router.navigate('');
-            app.trigger('show:index');
-        }
-    }))();
 
     var NotFoundView = Marionette.ItemView.extend({
         template: _.template('<div class="nf-title">Not found</div><div class="nf-text">The requested page could not be found</div><img src="arrow.png" id="home-arrow" />'),
@@ -156,6 +132,44 @@
         }
 
     });
+
+    // Instances
+
+    var headerView = new (Marionette.ItemView.extend({
+        template: _.template('<a class="nav-home" href="https://65535th.com">65535th</a> &middot; <a class="nav-projects" href="#projects">Projects</a>'),
+
+        events: {
+            'click .nav-home': 'home',
+            'click .nav-projects': 'projects'
+        },
+
+        _navigate: function(event, url, trigger) {
+            event.preventDefault();
+            event.stopPropagation();
+            app.router.navigate(url);
+            app.trigger(trigger);
+        },
+
+        home: function(event) {
+            this._navigate(event, '', 'show:index');
+        },
+
+        projects: function(event) {
+            this._navigate(event, 'projects', 'show:projects');
+        }
+    }))();
+
+    var app = new Marionette.Application();
+    app.layout = new Marionette.LayoutView({
+        el: 'body',
+
+        regions: {
+            'main': 'main',
+            'header': 'header'
+        }
+    });
+
+
 
     var controller = new ControllerClass();
 
