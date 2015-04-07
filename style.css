@@ -30,12 +30,16 @@ header a:hover {
     text-decoration: underline;
 }
 
-main {
+main > .small,
+main > .large {
     margin: 4em auto;
+    overflow: hidden;
 }
 
+
 @media (min-width: 0px) and (max-width: 799px) {
-    main {
+    main > .large,
+    main > .small {
         width: 100%;
         margin: 0;
     }
@@ -46,13 +50,17 @@ main {
 }
 
 @media (min-width: 1000px) {
-    main {
+    main > .small {
         width: 980px;
+    }
+
+    main > .large {
+        width: 95%;
     }
 }
 
 @media (min-width: 800px) and (max-width: 999px) {
-    main {
+    main > .small {
         width: 760px;
     }
 }
@@ -67,7 +75,8 @@ article {
 
 .article-title a:link,
 .article-title a:visited,
-.nf-title {
+.nf-title,
+.pr-large-title h1 {
     color: #fff;
     font-size: 3.5em;
     text-decoration: none;
@@ -117,13 +126,18 @@ article pre {
 }
 
 .article-content a:link,
-.article-content a:visited {
+.article-content a:visited,
+.pr-title a:link,
+.pr-title a:visited {
     color: #0b0;
 }
 
 .article-content a:focus,
 .article-content a:hover,
-.article-content a:active {
+.article-content a:active,
+.pr-title a:focus,
+.pr-title a:hover,
+.pr-title a:active {
     color: #f60;
 }
 
@@ -140,8 +154,6 @@ article pre {
 .article-content button:hover {
     box-shadow: 0 0 2px rgba(0,0,0,0.3);
 }
-
-
 
 .hljs {
     color: #eee !important;
@@ -178,4 +190,23 @@ footer {
     position: absolute;
     top: 2em;
     left: 1.6em;
+}
+
+.pr-row {
+    margin-bottom: 2em;
+}
+
+.pr-title,
+.pr-text,
+.pr-link {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.pr-title {
+    width: 30%;
+}
+
+.pr-text {
+    width: 70%;
 }

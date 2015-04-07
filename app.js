@@ -39,6 +39,7 @@
 
     var ArticleView = Marionette.ItemView.extend({
         tagName: 'article',
+        className: 'small',
         template: _.template('<div class="article-title"><a href="#post"><%=title%></a></div><div class="article-content"><%=contents%></div>'),
         triggers: {
             'click .article-title>a': 'show:single'
@@ -54,18 +55,60 @@
 
     var ArticlesView = Marionette.CollectionView.extend({
         tagName: 'section',
+        className: 'small',
         childView: ArticleView
     });
 
     var NotFoundView = Marionette.ItemView.extend({
         template: _.template('<div class="nf-title">Not found</div><div class="nf-text">The requested page could not be found</div><img src="arrow.png" id="home-arrow" />'),
-        tagName: 'div',
-        className: 'nf'
+        tagName: 'section',
+        className: 'nf small'
+    });
+
+    var Repository = Backbone.Model.extend({
+        defaults: {
+            id: '',
+            updated_at: '',
+            name: '',
+            description: '',
+            html_url: '',
+            fork: true
+        }
+    });
+
+    var Repositories = Backbone.Collection.extend({
+        model: Repository,
+        url: 'https://api.github.com/users/dak0rn/repos',
+        comparator: function(a,b) {
+            var k = a.get('updated_at');
+            var l = b.get('updated_at');
+
+            if( k === l )
+                return 0;
+
+            if( k < l )
+                return 1;
+            else
+                return -1;
+        }
+    });
+
+    var RepositoryView = Marionette.ItemView.extend({
+        className: 'pr-row',
+        template: _.template('<div class="pr-title"><a href="<%=html_url%>"><%=name%></a></div><div class="pr-text"><%=description%></div>')
+    });
+
+    var RepositoriesView = Marionette.CompositeView.extend({
+        childView: RepositoryView,
+        template: _.template('<div class="pr-large-title"><h1>Projects</h1></div><div class="projects"></div>'),
+        childViewContainer: '.projects',
+        className: 'small'
     });
 
     var ControllerClass = Marionette.Object.extend({
 
         collection: null,
+        repos: null,
 
         showIndex: function() {
 
@@ -129,6 +172,23 @@
             }
 
 
+        },
+
+        showProjects: function() {
+            var view;
+            if( null === this.repos ) {
+                this.repos = new Repositories();
+                this.repos.fetch()
+                    .done( _.bind(function() {
+                        this.repos = new Repositories( this.repos.where({fork: false}) );
+                        view = new RepositoriesView({collection: this.repos});
+                        app.layout.getRegion('main').show(view);
+                    }, this));
+            }
+            else {
+                view = new RepositoriesView({collection: this.repos});
+                app.layout.getRegion('main').show(view);
+            }
         }
 
     });
@@ -169,8 +229,6 @@
         }
     });
 
-
-
     var controller = new ControllerClass();
 
     app.router = new Marionette.AppRouter({
@@ -178,12 +236,14 @@
 
         appRoutes: {
             '': 'showIndex',
-            'post/:basename': 'showPost'
+            'post/:basename': 'showPost',
+            'projects': 'showProjects'
         }
     });
 
     app.on('show:post', controller.showPost, controller);
     app.on('show:index', controller.showIndex, controller);
+    app.on('show:projects', controller.showProjects, controller);
 
 
     app.on('start', function() {
