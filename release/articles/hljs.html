@@ -1,0 +1,42 @@
+<p><a href="https://highlightjs.org/">highlight.js</a> is an easy to use JavaScript library
+that can be used to highlight source code in websites. While that works great
+for static websites you may have some trouble when using dynamically rendered
+views and follow the standard documentation.</p>
+<p>Highlighting code is quite simple and should be done after all elements are
+rendered and exist in the DOM. Thus, they recommend to include and start
+the script at the end of your page.</p>
+<pre><code class="lang-html">&lt;script src=&quot;/path/to/highlight.pack.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;hljs.initHighlightingOnLoad();&lt;/script&gt;
+</code></pre>
+<p>However, using a snippet like that at the end of a Backbone application works for
+all content that has been rendered and inserted into the DOM before. Views generated
+later will not be highlighted.</p>
+<p>Luckily, highlight.js offers a <code>highlightBlock()</code> function that that takes a reference
+to a DOM element and highlights it.
+I used that function for the views powering this blog: whenever a view gets
+rendered, all <code>&lt;pre&gt;&lt;code&gt;</code> blocks will be passed to the highlighter. This can be
+done using the <code>onRender()</code> function in Backbone / Marionette views:</p>
+<pre><code class="lang-javascript">var ArticleView = Marionette.ItemView.extend({
+    tagName: &#39;article&#39;,
+    className: &#39;small&#39;,
+    template: _.template(&#39;&lt;div class=&quot;article-title&quot;&gt;&lt;a href=&quot;#post&quot;&gt;&lt;/a&gt;&lt;/div&gt;&lt;div class=&quot;article-content&quot;&gt;&lt;/div&gt;&#39;),
+    triggers: {
+        &#39;click .article-title&gt;a&#39;: &#39;show:single&#39;
+    },
+
+    onRender: function() {
+        var h = hljs;
+
+        if( ! h || ! h.highlightBlock ) {
+            h = {
+                highlightBlock: function() {}
+            };
+        }
+
+        this.$(&#39;pre code&#39;).each(function(i, block) {
+                h.highlightBlock(block);
+        });
+    }
+
+});
+</code></pre>

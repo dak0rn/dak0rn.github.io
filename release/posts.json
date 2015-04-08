@@ -1,10 +1,18 @@
 {
-  "index": {
-    "title": "welcome",
+  "hljs": {
+    "title": "highlight.js & Backbone views",
     "author": "dak0rn",
-    "date": "2015-04-06 20:25",
-    "preview": "This is a test for the new design. It may have …",
-    "iso8601Date": "2015-04-06T20:25:00+02:00",
+    "date": "2015-04-07 21:00",
+    "preview": "[highlight.js](https://highlightjs.org/) is an …",
+    "iso8601Date": "2015-04-07T21:00:00+02:00",
+    "basename": "hljs"
+  },
+  "index": {
+    "title": "dak0rn.github.io",
+    "author": "dak0rn",
+    "date": "2015-04-07 20:25",
+    "preview": "Woohoo, the website has been updated.\n\nActually, …",
+    "iso8601Date": "2015-04-07T20:25:00+02:00",
     "basename": "index"
   }
 }
