@@ -46,8 +46,16 @@
         },
 
         onRender: function() {
+            var h = hljs;
+
+            if( ! h || ! h.highlightBlock ) {
+                h = {
+                    highlightBlock: function() {}
+                };
+            }
+
             this.$('pre code').each(function(i, block) {
-                hljs.highlightBlock(block);
+                    h.highlightBlock(block);
             });
         }
 
