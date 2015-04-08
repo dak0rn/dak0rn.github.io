@@ -177,6 +177,18 @@ article pre {
     color: #f60;
 }
 
+.hljs-tag .hljs-title {
+    color: #f80 !important;
+}
+
+.hljs-tag .hljs-attribute {
+    color: #0b0 !important;
+}
+
+.hljs-tag .hljs-value {
+    color: #08c !important;
+}
+
 footer {
     text-align: center;
     padding: 1.4em;
