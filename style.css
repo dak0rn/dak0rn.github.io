@@ -109,8 +109,13 @@ article {
     color: #222;
 }
 
-.article-content p {
+.article-content p,
+.article-content li {
     line-height: 1.5em;
+}
+
+.article-content li {
+    margin-bottom: 0.5em;
 }
 
 article pre,
@@ -119,6 +124,13 @@ article code {
     overflow: auto;
     background: #444;
     color: #fff;
+}
+
+p code,
+li code {
+    padding: 0.1em 0.2em;
+    border-radius: 4px;
+    font-size: 0.9em;
 }
 
 article pre {
