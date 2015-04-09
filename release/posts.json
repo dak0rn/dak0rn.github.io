@@ -1,4 +1,12 @@
 {
+  "domain": {
+    "title": "65535th",
+    "author": "dak0rn",
+    "date": "2015-04-09 09:00",
+    "preview": "The custom domain for this GitHub page is now …",
+    "iso8601Date": "2015-04-09T09:00:00+02:00",
+    "basename": "domain"
+  },
   "hljs": {
     "title": "highlight.js & Backbone views",
     "author": "dak0rn",
