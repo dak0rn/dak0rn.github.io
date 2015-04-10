@@ -15,6 +15,14 @@
     "iso8601Date": "2015-04-10T06:21:00+02:00",
     "basename": "espresso235"
   },
+  "espresso240": {
+    "title": "espressojs 2.4.0",
+    "author": "dak0rn",
+    "date": "2015-04-10 11:00",
+    "preview": "After I have released espressojs 2.3.5 this …",
+    "iso8601Date": "2015-04-10T11:00:00+02:00",
+    "basename": "espresso240"
+  },
   "hljs": {
     "title": "highlight.js & Backbone views",
     "author": "dak0rn",
