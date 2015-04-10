@@ -12,7 +12,8 @@
             title: '',
             contents: '',
             date: '',
-            basename: ''
+            basename: '',
+            iso8601Date: ''
         },
 
         url: function() {
@@ -20,6 +21,8 @@
         },
 
         loadPost: function() {
+
+            this.set('date', new Date(this.get('iso8601Date')), {silent:true});
 
             return $.get( this.url() )
                 .done( _.bind(function(html) {
@@ -33,7 +36,16 @@
     var Posts = Backbone.Collection.extend({
         model: Post,
         comparator: function(model1, model2) {
-            return model1.get('date') < model2.get('date');
+            var m1 = model1.get('date');
+            var m2 = model2.get('date');
+
+            if( m1 === m2 )
+                return 0;
+
+            if( m1 < m2 )
+                return 1;
+            else
+                return -1;
         }
     });
 
