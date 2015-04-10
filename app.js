@@ -110,7 +110,7 @@
         childView: RepositoryView,
         template: _.template('<div class="pr-large-title"><h1>Projects</h1></div><div class="projects"></div>'),
         childViewContainer: '.projects',
-        className: 'small'
+        className: 'large'
     });
 
     var ControllerClass = Marionette.Object.extend({

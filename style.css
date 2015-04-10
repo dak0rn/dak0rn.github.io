@@ -38,10 +38,9 @@ main > .large {
 
 
 @media (min-width: 0px) and (max-width: 799px) {
-    main > .large,
-    main > .small {
-        width: 100%;
-        margin: 0;
+
+    main > .large {
+        padding: 0 0.5em;
     }
 
     header {
@@ -78,7 +77,6 @@ article {
 .nf-title,
 .pr-large-title h1 {
     color: #fff;
-    font-size: 4vw;
     text-decoration: none;
     font-weight: bold;
     letter-spacing: 0.1em;
@@ -98,6 +96,8 @@ article {
                0 10px 10px rgba(0,0,0,.2),
                0 20px 20px rgba(0,0,0,.15);
 }
+
+
 
 .article-title a:focus,
 .article-title a:hover,
@@ -224,17 +224,26 @@ footer {
     margin-bottom: 2em;
 }
 
-.pr-title,
-.pr-text,
-.pr-link {
-    display: inline-block;
-    vertical-align: top;
-}
+@media (min-width: 760px) {
+    .article-title a:link,
+    .article-title a:visited,
+    .nf-title,
+    .pr-large-title h1 {
+        font-size: 3.5em;
+    }
 
-.pr-title {
-    width: 30%;
-}
+    .pr-title,
+    .pr-text,
+    .pr-link {
+        display: inline-block;
+        vertical-align: top;
+    }
 
-.pr-text {
-    width: 70%;
+    .pr-title {
+        width: 30%;
+    }
+
+    .pr-text {
+        width: 70%;
+    }
 }
