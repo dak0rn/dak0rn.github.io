@@ -78,7 +78,7 @@ article {
 .nf-title,
 .pr-large-title h1 {
     color: #fff;
-    font-size: 3.5em;
+    font-size: 4vw;
     text-decoration: none;
     font-weight: bold;
     letter-spacing: 0.1em;
@@ -199,6 +199,10 @@ article pre {
 
 .hljs-tag .hljs-value {
     color: #08c !important;
+}
+
+.hljs-comment {
+    color: #888 !important;
 }
 
 footer {
