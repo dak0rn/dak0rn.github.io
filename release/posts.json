@@ -46,5 +46,13 @@
     "preview": "Woohoo, the website has been updated.\n\nActually, …",
     "iso8601Date": "2015-04-07T20:25:00+02:00",
     "basename": "index"
+  },
+  "jshintvim": {
+    "title": "jshint & vim",
+    "author": "dak0rn",
+    "date": "2015-04-16 19:00",
+    "preview": "vim is an awesome editor for any kind of …",
+    "iso8601Date": "2015-04-16T19:00:00+02:00",
+    "basename": "jshintvim"
   }
 }
