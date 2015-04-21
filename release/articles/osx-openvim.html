@@ -1,0 +1,38 @@
+<p>vim is an awesome editor especially for developers like me. I
+use it every day for nearly everything I have to edit.
+By default, it is not possible to open files from the Finder on
+OS X in a terminal vim session.</p>
+<p>However, given that <a href="https://iterm2.com">iTerm</a> is installed, a simple
+AppleScript can do the trick.</p>
+<p>Open <em>Automator</em>, create a new application and add a <em>Run AppleScript</em> node.
+Paste the following code:</p>
+<pre><code class="lang-applescript">on run {input, parameters}
+    if (count of input) &gt; 0 then
+        tell application &quot;System Events&quot;
+            set runs to false
+            try
+                set p to application process &quot;iTerm&quot;
+                set runs to true
+            end try
+        end tell
+        tell application &quot;iTerm&quot;
+            activate
+            if (count of terminals) = 0 then
+                set t to (make new terminal)
+            else
+                set t to current terminal
+            end if
+            tell t
+                tell (make new session at the end of sessions)
+                    exec command (&quot;vim \&quot;&quot; &amp; POSIX path of first item of input as text) &amp; &quot;\&quot;&quot;
+                end tell
+                if not runs then
+                    terminate first session
+                end if
+            end tell
+        end tell
+    end if
+end run
+</code></pre>
+<p>Save the project as an Application and choose it when opening files.</p>
+<p><img src="img/automator.png" alt=""></p>
