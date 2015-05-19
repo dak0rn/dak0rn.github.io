@@ -1,0 +1,100 @@
+<p>A powerful search is often a key factor to success for front-end
+applications. Think about a music management: you have an albums
+page listing all albums you have where you want to search for
+a specific one. Either using the album title or any other attribute
+assigned to an album.
+In addition, you have a genre overview page and if you click on a
+genre you want to list all albums relating to that genre.</p>
+<p>It is a good and common pattern to combine these two use cases by re-using
+the already implemented search.</p>
+<p><img src="img/search.png" alt=""></p>
+<p>This article will show you an important part of that search implementation: 
+the parsing of the search query.</p>
+<h2 id="cascading-search">Cascading search</h2>
+<p>What we want is a cascading search that allows to filter for specific
+attributes or a value in general.
+Sounds a bit complication, but it is quite easy though.</p>
+<p>Given the following search term</p>
+<pre><code>genre:&quot;jazz&quot; artist:&quot;thad jones&quot; messengers
+</code></pre><p>We have to do the following steps:</p>
+<ul>
+<li>Search for <code>jazz</code> in the attribute <code>genre</code></li>
+<li>Search for <code>thad jones</code> in the attribute <code>artist</code></li>
+<li>Search for <code>messengers</code> in all attributes</li>
+</ul>
+<p>The search is supposed to be <strong>cascading</strong>. Means: we search
+for <code>jazz</code> first. Then, we search for <code>thad jones</code> in the produced
+result set and all objects that passed that test will the be filtered
+for <code>messengers</code>. It would also have been possible to merge two search
+results.</p>
+<h2 id="what-you-need">What you need</h2>
+<p>I suppose you have <em>lodash</em> available in whatever environment you are developing
+for. I use lodash because I like lodash and because it provides a very
+handy <code>_.trim()</code> function. If you need to use underscore take a look
+at <a href="https://epeli.github.io/underscore.string/">underscore.string</a> or if you
+not want to use any third party library at all implement the functions
+<code>_.isEmpty()</code>, <code>_.each()</code> and <code>_.trim()</code>.</p>
+<h2 id="how-it-works">How it works</h2>
+<p>The implementation is quite easy and short. We have a search term like this:</p>
+<pre><code>genre:&quot;jazz&quot; artist:&quot;thad jones&quot; messengers
+</code></pre><p>So, what we do is the following:</p>
+<ul>
+<li>Split the string but keep quoted sections</li>
+<li>If we have an attribute search create an object with that attribute and value. Add it to the array.</li>
+<li>If we have a general search add the string to the array</li>
+</ul>
+<p>The array with the parsed search criteria is returned. </p>
+<h2 id="implementation">Implementation</h2>
+<p>The function has to perform the following steps:</p>
+<ul>
+<li>Split the string but keep quoted sections</li>
+<li>Remove quotes</li>
+<li>Ignore invalid patterns</li>
+<li>Split at a colon if contained</li>
+<li>Create an object with the parsed values</li>
+<li>Add the object or the string to the array of criteria</li>
+</ul>
+<p>This is the code that does all the magic:</p>
+<pre><code class="lang-javascript">parseQuery = function(what){
+    var terms = [];
+
+    // Split at spaces but keep quoted words together 
+    var parts = what.match(/(?:[^\s&#39;&quot;]+|[&#39;&quot;][^&#39;&quot;]*[&#39;&quot;])+/g);
+
+    // Process each part
+    _.each(parts, function(e){
+
+        // Remove leading and trailing quotes 
+        e = _.trim(e,&#39;&quot;\&#39;&#39;);
+
+        // Skip if invalid
+        if( _.isEmpty(e) )
+            return;
+
+        // Find the position of the first colon
+        var colon = e.indexOf(&#39;:&#39;);
+
+        // If there is no colon just add the single string
+        if( -1 === colon ) {
+            terms.push(e);
+            return;
+        }
+
+        // Get the part before the colon
+        var key = e.substr(0, colon);
+
+        // Criteria object
+        var obj = {};
+
+                   // Remove quotes from the part after
+                   // the colon
+        obj[key] = _.trim(e.substr(colon+1), &#39;\&#39;&quot;&#39;);
+
+          // Add the criteria
+        terms.push(obj);
+
+    });
+
+    return terms;
+};
+</code></pre>

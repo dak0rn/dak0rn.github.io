@@ -70,5 +70,13 @@
     "preview": "vim is an awesome editor especially for …",
     "iso8601Date": "2015-04-19T16:00:00+02:00",
     "basename": "osx-openvim"
+  },
+  "parseQuery": {
+    "title": "Search query parsing",
+    "author": "dak0rn",
+    "date": "2015-05-19 06:00",
+    "preview": "A powerful search is often a key factor to …",
+    "iso8601Date": "2015-05-19T06:00:00+02:00",
+    "basename": "parseQuery"
   }
 }
