@@ -58,7 +58,7 @@
         },
 
         onRender: function() {
-            var h = hljs;
+            var h = 'undefined' === typeof hljs ? {} : hljs;
 
             if( ! h || ! h.highlightBlock ) {
                 h = {
