@@ -78,5 +78,13 @@
     "preview": "A powerful search is often a key factor to …",
     "iso8601Date": "2015-05-19T06:00:00+02:00",
     "basename": "parseQuery"
+  },
+  "sortable-collection": {
+    "title": "Sortable collection",
+    "author": "dak0rn",
+    "date": "2015-05-21 12:00",
+    "preview": "In a [recent post](#post/parseQuery) I described …",
+    "iso8601Date": "2015-05-21T12:00:00+02:00",
+    "basename": "sortable-collection"
   }
 }
