@@ -131,6 +131,8 @@ li code {
     padding: 0.1em 0.2em;
     border-radius: 4px;
     font-size: 0.9em;
+    background: none !important;
+    color: #08c;
 }
 
 article pre {
