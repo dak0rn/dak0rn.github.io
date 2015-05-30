@@ -187,7 +187,7 @@ article pre {
     color: #08c !important;
 }
 
-.hljs-params {
+.hljs-params, .hljs-function {
     color: #f60;
 }
 
@@ -195,8 +195,8 @@ article pre {
     color: #f80 !important;
 }
 
-.hljs-tag .hljs-attribute {
-    color: #0b0 !important;
+.hljs-attribute {
+    color: gainsboro;
 }
 
 .hljs-tag .hljs-value {
@@ -206,6 +206,11 @@ article pre {
 .hljs-comment {
     color: #888 !important;
 }
+
+.hljs-number {
+    color: #deb887;
+}
+
 
 footer {
     text-align: center;
