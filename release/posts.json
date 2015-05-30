@@ -63,6 +63,14 @@
     "iso8601Date": "2015-04-16T19:00:00+02:00",
     "basename": "jshintvim"
   },
+  "marionette-behaviors": {
+    "title": "Marionette.Behaviors",
+    "author": "dak0rn",
+    "date": "2015-05-29 18:00",
+    "preview": "[Marionette](http://marionettejs.com) comes with …",
+    "iso8601Date": "2015-05-29T18:00:00+02:00",
+    "basename": "marionette-behaviors"
+  },
   "osx-openvim": {
     "title": "Open files in vim",
     "author": "dak0rn",
