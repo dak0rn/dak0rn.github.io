@@ -1,0 +1,97 @@
+<p>The <code>ui</code> property in <code>Marionette.View</code> allows you to abstract parts
+of a view&#39;s DOM structure. You often find code like the following that
+plays with jQuery to manipulate parts of a rendered view:</p>
+<pre><code class="lang-coffee">    # ...
+    onShowError: (msg) -&gt;
+        error = @$(&#39;.error&#39;)
+        error.text msg
+        error.animate opacity:1, 200
+
+    onHideError: () -&gt;
+        error = @$(&#39;.error&#39;)
+        error.text &#39;&#39;
+        error.animate opacity:0, 200
+
+    # ...
+</code></pre>
+<p>While this seems to be an appropriate solution it has some major
+downsides:</p>
+<ol>
+<li>It is slow. Every time the function is executed jQuery uses its selector
+engine to find the desired node(s).</li>
+<li>The node selectors are hard coded which may lead to repetitive code</li>
+</ol>
+<h2 id="the-ui-property">The <code>ui</code> property</h2>
+<p>A <code>Marionette.View</code>&#39;s <code>ui</code> property allows you to abstract these selectors with
+identifiers. It is an object that maps a name to a jQuery selector. Thus, the
+partial view from the previous example could also be written like that:</p>
+<pre><code class="lang-coffee">    # ...
+    ui:
+        error: &#39;.error&#39;
+
+    onShowError: (msg) -&gt;
+        @ui.error.text msg
+        @ui.error.animate opacity:1, 200
+
+    onHideError: () -&gt;
+        @ui.error.text &#39;&#39;
+        @ui.error.animate opacity:0, 200
+
+    # ...
+</code></pre>
+<p>As you can see, the selector has been moved to a separate object and can
+then be accessed using <code>@ui.error</code> (or <code>this.ui.error</code> in JavaScript).</p>
+<p>Using this approach you get a couple of advantages:</p>
+<ol>
+<li>Your code is more DRY</li>
+<li>It is - in my point of view - more readable</li>
+<li>Parent views and <code>Marionette.Behavior</code>s can use them, too. Thus, they have a way
+better interface</li>
+<li>It is faster</li>
+</ol>
+<h2 id="how-it-works">How it works</h2>
+<p>The <code>ui</code> bindings are cached when the view has been rendered and are accessible afterwards.
+The functions for that are defined in <code>Marionette.View</code>:</p>
+<pre><code class="lang-javascript">Marionette.View = Backbone.View.extend({
+
+    // ...
+
+    bindUIElements: function() {
+      this._bindUIElements();
+      _.invoke(this._behaviors, this._bindUIElements);
+    },
+
+    // This method binds the elements specified in the &quot;ui&quot; hash inside the view&#39;s code with
+    // the associated jQuery selectors.
+    _bindUIElements: function() {
+      if (!this.ui) { return; }
+
+      // store the ui hash in _uiBindings so they can be reset later
+      // and so re-rendering the view will be able to find the bindings
+      if (!this._uiBindings) {
+        this._uiBindings = this.ui;
+      }
+
+      // get the bindings result, as a function or otherwise
+      var bindings = _.result(this, &#39;_uiBindings&#39;);
+
+      // empty the ui so we don&#39;t have anything to start with
+      this.ui = {};
+
+      // bind each of the selectors
+      _.each(bindings, function(selector, key) {
+        this.ui[key] = this.$(selector);
+      }, this);
+    },
+
+    // ...
+
+})
+</code></pre>
+<p>The <code>_bindUIElements</code> function gets called by <code>bindUIElements</code> that is invoked when
+the view has been rendered and before the <code>onRender</code> handler gets executed.
+As you can see, it first copies the defined bindings from <code>ui</code> to <code>_uiBindings</code>,
+iterates over them and caches the references to the desired nodes which are
+then available in <code>this.ui</code>.</p>
+<pre><code class="lang-javascript">this.ui[key] = this.$(selector);
+</code></pre>
