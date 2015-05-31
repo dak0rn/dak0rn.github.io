@@ -385,6 +385,14 @@
     }
   });
 
+  app.on('all', function(e) {
+    if (e.startsWith('show:')) {
+      return $('html,body').animate({
+        scrollTop: 0
+      }, 200);
+    }
+  });
+
   app.on('show:post', controller.showPost, controller);
 
   app.on('show:index', controller.showIndex, controller);

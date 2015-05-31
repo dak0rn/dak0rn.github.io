@@ -194,6 +194,9 @@ app.router = new Marionette.AppRouter(
         'projects': 'showProjects'
 )
 
+app.on 'all', (e) ->
+    $('html,body').animate scrollTop:0, 200  if e.startsWith 'show:'
+        
 app.on 'show:post', controller.showPost, controller
 app.on 'show:index', controller.showIndex, controller
 app.on 'show:projects', controller.showProjects, controller
