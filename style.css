@@ -118,20 +118,27 @@ article {
     margin-bottom: 0.5em;
 }
 
-article pre,
-article code {
+article pre, article code {
     font-family: 'Fira Mono', 'Source Code Pro', 'Ubuntu Mono', monospace;
+}
+
+article pre {
     overflow: auto;
     background: #444;
     color: #fff;
 }
 
 p code,
-li code {
+li code,
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
     padding: 0.1em 0.2em;
     border-radius: 4px;
     font-size: 0.9em;
-    background: none !important;
     color: #08c;
 }
 
