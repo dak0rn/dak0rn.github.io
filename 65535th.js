@@ -386,7 +386,7 @@
   });
 
   app.on('all', function(e) {
-    if (e.startsWith('show:')) {
+    if (0 === e.indexOf('show:')) {
       return $('html,body').animate({
         scrollTop: 0
       }, 200);

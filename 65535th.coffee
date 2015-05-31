@@ -195,7 +195,7 @@ app.router = new Marionette.AppRouter(
 )
 
 app.on 'all', (e) ->
-    $('html,body').animate scrollTop:0, 200  if e.startsWith 'show:'
+    $('html,body').animate scrollTop:0, 200  if 0 is e.indexOf('show:')
         
 app.on 'show:post', controller.showPost, controller
 app.on 'show:index', controller.showIndex, controller
