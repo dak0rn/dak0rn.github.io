@@ -11,7 +11,7 @@
 	var formatTitle = function(title) {
 		return title
 			.replace(/^[0-9]+-/,'')
-			.replace(/[_-]/, ' ')
+			.replace(/[_-]/g, ' ')
 			.replace(/(?:^|\s)\S/g, function(a) { return a.toUpperCase(); })
 			.replace(/\.md$/,'');
 	};
