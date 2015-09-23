@@ -20,13 +20,13 @@ functionality is implemented in a little helper function.
     //+ _timeoutHandler :: Promise -> Promise
     _timeoutHandler: function (promise) {
         var rejection = new WinJS.Promise(function (_, r) {
-        setTimeout(r.bind({}, 'timeout'), Configuration.networkTimeout);
-    });
+            setTimeout(r.bind({}, 'timeout'), Configuration.networkTimeout);
+        });
 
-    return WinJS.Promise.any([promise, rejection]).then(function (info) {
-        return info.value._value;
-    });
-},
+        return WinJS.Promise.any([promise, rejection]).then(function (info) {
+            return info.value._value;
+        });
+    },
 ```
 
 All we have to do now is to manipulate the return value by passing the network promise to `_timeoutHandler`:
