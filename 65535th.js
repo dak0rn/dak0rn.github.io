@@ -65,7 +65,7 @@
 		$http.get(baseUrl)
 			.then(function(response) {
 
-				response.data.forEach(function(post) {
+				response.data.reverse().forEach(function(post) {
 					var o = {
 						title: formatTitle(post.name),
 						url: post.name.replace(/\.md$/, '')
