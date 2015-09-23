@@ -32,9 +32,6 @@
 				templateUrl: 'tpl/post.html',
 				controller: 'PostCtrl'
 			})
-			.when('/about', {
-				templateUrl: 'tpl/about.html'
-			})
 			.otherwise({ redirectTo: '/' });
 		
 	}]);
