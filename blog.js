@@ -9,6 +9,7 @@ const marked = require('marked');
 const moment = require('moment');
 const theme = require('./theme');
 const mkdir = require('mkdirp');
+const pyg = require('pygmentize-bundled');
 
 const createDirectory = dir => new Promise( (res, rej) => {
     mkdir(dir, err => {
@@ -18,6 +19,18 @@ const createDirectory = dir => new Promise( (res, rej) => {
             res(dir);
     });
 });
+
+marked.setOptions({
+    highlight(code, lang, cb) {
+        pyg({ lang, format: 'html' }, code, (err, res) => cb(err, res.toString()));
+    }
+})
+
+const parse = md => {
+    return new Promise( (res, rej) => {
+        marked(md, (err, content) => err ? rej(err) : res(content) );
+    });
+};
 
 // readFile
 // readdir
@@ -34,7 +47,8 @@ glob('_contents/**/*.md', globOpt)
     .then( files => files.map( file => Object.assign({}, file, { out: 'index.html' }) ) )
     .then( files => files.map( file => Object.assign({}, file, { dir: file.path.replace(/_contents\/(.*)\.md$/, '$1') }) ) )
     .then( files => files.map( file => Object.assign({}, file, frontMatter(file.body) ) ) )
-    .then( files => files.map( file => Object.assign({}, file, { body: marked(file.body)} )))
+    // .then( files => files.map( file => Object.assign({}, file, { body: marked(file.body) } )))
+    .then( files => Promise.all( files.map(file => parse(file.body).then( md => Object.assign(file, {body: md})) )))
     .then( files => files.map( file => file.attributes.date ? file : Object.assign({ date: now() }, file) ) )
     .then( files => Promise.all(files.map( file => createDirectory( file.dir ).then( () => file, () => file ) )))
     .then( files => {

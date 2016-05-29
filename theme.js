@@ -16,18 +16,20 @@ module.exports = {
 
     index(posts) {
         return `${head('65535th')}
-    <h1 id="page-title">65535th</h1>
-    <ul id="post-list">
-    ${
-        posts.map( post => `<li class="post"><a href="${post.uri}">${post.title}</a></li>` ).join('')
-    }
-    </ul>
+    <div id="page-content" class="content">
+        <h1 id="page-title">65535th</h1>
+        <ul id="post-list">
+        ${
+            posts.map( post => `<li class="post"><a href="${post.uri}">${post.title}</a></li>` ).join('')
+        }
+        </ul>
+    </div>
 ${tail()}`;
     },
 
     post(content, meta) {
         return `${head(meta.attributes.title)}
-<div id="post-content">${ content }</div>
+<div id="post-content" class="content">${ content }</div>
 ${tail()}`;
     }
 
