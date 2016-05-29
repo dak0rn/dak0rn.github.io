@@ -29,7 +29,13 @@ ${tail()}`;
 
     post(content, meta) {
         return `${head(meta.attributes.title)}
-<div id="post-content" class="content">${ content }</div>
+<div class="backlink">
+    <a href="/">&laquo; Overview</a>
+</div>
+<div id="post-content" class="content">
+<h1>${meta.attributes.title}</h1>
+${ content }
+</div>
 ${tail()}`;
     }
 
