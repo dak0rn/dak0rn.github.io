@@ -1,0 +1,15 @@
+@font-face {
+    font-family: Alegreya;
+    src: url(Alegreya-Regular.ttf);
+}
+
+
+body {
+    background: #fefefe;
+    font-family: 'Alegreya';
+}
+
+.page-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
