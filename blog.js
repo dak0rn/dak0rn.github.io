@@ -8,6 +8,16 @@ const frontMatter = require('front-matter');
 const marked = require('marked');
 const moment = require('moment');
 const theme = require('./theme');
+const mkdir = require('mkdirp');
+
+const createDirectory = dir => new Promise( (res, rej) => {
+    mkdir(dir, err => {
+        if( err )
+            rej(err);
+        else
+            res(dir);
+    });
+});
 
 // readFile
 // readdir
@@ -26,7 +36,7 @@ glob('_contents/**/*.md', globOpt)
     .then( files => files.map( file => Object.assign({}, file, frontMatter(file.body) ) ) )
     .then( files => files.map( file => Object.assign({}, file, { body: marked(file.body)} )))
     .then( files => files.map( file => file.attributes.date ? file : Object.assign({ date: now() }, file) ) )
-    .then( files => Promise.all(files.map( file => fs.mkdir( file.dir ).then( () => file, () => file ) )))
+    .then( files => Promise.all(files.map( file => createDirectory( file.dir ).then( () => file, () => file ) )))
     .then( files => {
         // Write the index file
         const stats = files.map( file => Object.assign({}, file.attributes, { uri: file.dir, date: file.date }) );

@@ -7,9 +7,20 @@
 body {
     background: #fefefe;
     font-family: 'Alegreya';
+    margin-bottom: 4em;
 }
 
 .page-container {
+    
+}
+
+.page-container > * {
     max-width: 900px;
+    padding: 0 15px;
     margin: 0 auto;
+}
+
+.page-container p {
+    margin-bottom: 1em;
+    text-align: justify;
 }
