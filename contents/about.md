@@ -16,3 +16,8 @@ I work as a freelance engineer and also do [Open Source work](https://github.com
 I like Emacs. But I use vim.
 
 Write me at <a href="mailto:daniel@suitsoft.eu">daniel@suitsoft.eu</a>.
+
+---
+
+This page uses the wonderful WWDC 2016 colors taken from [this Codepen](https://codepen.io/n7best/pen/JXZjMB), and the
+Roboto Mono font.
