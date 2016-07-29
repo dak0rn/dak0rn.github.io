@@ -89,10 +89,6 @@ article li {
 
 #main li {
     margin-bottom: 5px;
-}
-
-#main li::before {
-    content: '- ';
     color: #bb383a;
 }
 
