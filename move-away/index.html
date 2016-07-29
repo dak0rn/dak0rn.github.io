@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Move away from reducer switch statements - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/move-away/">/move-away/</a></div>
+        <div>@date 2016-01-26</div>
+        <div>@title Move away from reducer switch statements</div>
+    </nav><article>
+                <p>I often read other people&#39;s code to see how they implement things differently than me. Nearly every time I look at reducer function implementations in applications using Redux I come across these <code>switch</code> statement blocks.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">function</span> <span class="nx">todoApp</span><span class="p">(</span><span class="nx">state</span> <span class="o">=</span> <span class="nx">initialState</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="nx">action</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nx">SET_VISIBILITY_FILTER</span><span class="o">:</span>
+      <span class="k">return</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">assign</span><span class="p">({},</span> <span class="nx">state</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">visibilityFilter</span><span class="o">:</span> <span class="nx">action</span><span class="p">.</span><span class="nx">filter</span>
+      <span class="p">})</span>
+    <span class="k">default</span><span class="o">:</span>
+      <span class="k">return</span> <span class="nx">state</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+</code></pre>
+<p>This is an actual example taken from the <a href="http://redux.js.org/docs/basics/Reducers.html">official documentation</a> and that might be the reason why many developer adapt this pattern.</p>
+<p>However, in my opinion, code like this is hard to reason about (manly because it is ugly) and thus it is hard to maintain.</p>
+<p>An the <em>solution</em> to this is not only simple but elegant; use an object with functions! The computed property is very helpful here, especially if you store all your actions in a separate file.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kr">import</span> <span class="o">*</span> <span class="nx">as</span> <span class="nx">Actions</span> <span class="nx">from</span> <span class="s1">&#39;./Actions&#39;</span><span class="p">;</span>
+<span class="kr">import</span> <span class="p">{</span> <span class="nx">initialState</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;./InitialStates&#39;</span><span class="p">;</span>
+
+<span class="kr">const</span> <span class="nx">reducers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1">// Something simple</span>
+    <span class="p">[</span> <span class="nx">Actions</span><span class="p">.</span><span class="nx">SET_VISIBILITY_FILTER</span> <span class="p">](</span><span class="nx">state</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kr">const</span> <span class="p">{</span> <span class="nx">filter</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">action</span><span class="p">;</span>
+        <span class="k">return</span> <span class="nx">state</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;visibilityFilter&#39;</span><span class="p">,</span> <span class="nx">filter</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="c1">// If you use redux-promise-middleware</span>
+    <span class="p">[</span> <span class="nx">Actions</span><span class="p">.</span><span class="nx">SAVE</span> <span class="o">+</span> <span class="s1">&#39;_PENDING&#39;</span> <span class="p">](</span><span class="nx">state</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">state</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="s1">&#39;saving&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// ...</span>
+<span class="p">};</span>
+</pre></div>
+
+</code></pre>
+<p>The actual function reducer just looks up the function in the object and invokes the function if available.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kr">const</span> <span class="nx">reducer</span> <span class="o">=</span> <span class="p">(</span><span class="nx">state</span> <span class="o">=</span> <span class="nx">initialState</span><span class="p">,</span> <span class="nx">action</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="kr">const</span> <span class="p">{</span> <span class="nx">type</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">action</span><span class="p">;</span>
+
+    <span class="k">if</span><span class="p">(</span> <span class="nx">reducers</span><span class="p">[</span><span class="nx">type</span><span class="p">]</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="nx">reducers</span><span class="p">[</span><span class="nx">type</span><span class="p">](</span><span class="nx">state</span><span class="p">,</span> <span class="nx">action</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="nx">state</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+</code></pre>
+<p>The advantages from my point of view:</p>
+<ul>
+<li>The reducer function is very slick and simple</li>
+<li>If required you can implement special action handling quite easy. For example, if you always want to set a loading state when an actions ends with <code>_PENDING</code> it is quite simple to add to the reducer function without making it unreadable.</li>
+<li>The object approach feels very natural if you are coming from a language that uses classes</li>
+</ul>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

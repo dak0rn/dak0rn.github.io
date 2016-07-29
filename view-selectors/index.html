@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Abstracting view selectors - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/view-selectors/">/view-selectors/</a></div>
+        <div>@date 2015-08-01</div>
+        <div>@title Abstracting view selectors</div>
+    </nav><article>
+                <p>The <code>ui</code> property in <code>Marionette.View</code> allows you to abstract parts of a view&#39;s DOM structure. You often find code like the following that plays with jQuery to manipulate parts of a rendered view:</p>
+<pre><code class="lang-coffee"><div class="highlight"><pre>    <span class="c1"># ...</span>
+    <span class="nv">onShowError: </span><span class="nf">(msg) -&gt;</span>
+        <span class="nv">error = </span><span class="nx">@$</span><span class="p">(</span><span class="s">&#39;.error&#39;</span><span class="p">)</span>
+        <span class="nx">error</span><span class="p">.</span><span class="nx">text</span> <span class="nx">msg</span>
+        <span class="nx">error</span><span class="p">.</span><span class="nx">animate</span> <span class="nx">opacity</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="nv">onHideError: </span><span class="nf">() -&gt;</span>
+        <span class="nv">error = </span><span class="nx">@$</span><span class="p">(</span><span class="s">&#39;.error&#39;</span><span class="p">)</span>
+        <span class="nx">error</span><span class="p">.</span><span class="nx">text</span> <span class="s">&#39;&#39;</span>
+        <span class="nx">error</span><span class="p">.</span><span class="nx">animate</span> <span class="nx">opacity</span><span class="o">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="c1"># ...</span>
+</pre></div>
+
+</code></pre>
+<p>While this seems to be an appropriate solution it has some major downsides:</p>
+<ol>
+<li>It is slow. Every time the function is executed jQuery uses its selector engine to find the desired node(s).</li>
+<li>The node selectors are hard coded which may lead to repetitive code</li>
+</ol>
+<h2 id="the-ui-property">The <code>ui</code> property</h2>
+<p>A <code>Marionette.View</code>&#39;s <code>ui</code> property allows you to abstract these selectors with identifiers. It is an object that maps a name to a jQuery selector. Thus, the partial view from the previous example could also be written like that:</p>
+<pre><code class="lang-coffee"><div class="highlight"><pre>    <span class="c1"># ...</span>
+    <span class="nv">ui:</span>
+        <span class="nv">error: </span><span class="s">&#39;.error&#39;</span>
+
+    <span class="nv">onShowError: </span><span class="nf">(msg) -&gt;</span>
+        <span class="nx">@ui</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">text</span> <span class="nx">msg</span>
+        <span class="nx">@ui</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">animate</span> <span class="nx">opacity</span><span class="o">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="nv">onHideError: </span><span class="nf">() -&gt;</span>
+        <span class="nx">@ui</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">text</span> <span class="s">&#39;&#39;</span>
+        <span class="nx">@ui</span><span class="p">.</span><span class="nx">error</span><span class="p">.</span><span class="nx">animate</span> <span class="nx">opacity</span><span class="o">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span>
+
+    <span class="c1"># ...</span>
+</pre></div>
+
+</code></pre>
+<p>As you can see, the selector has been moved to a separate object and can then be accessed using <code>@ui.error</code> (or <code>this.ui.error</code> in JavaScript).</p>
+<p>Using this approach you get a couple of advantages:</p>
+<ol>
+<li>Your code is more DRY</li>
+<li>It is - in my point of view - more readable</li>
+<li>Parent views and <code>Marionette.Behavior</code>s can use them, too. Thus, they have a way better interface</li>
+<li>It is faster</li>
+</ol>
+<h2 id="how-it-works">How it works</h2>
+<p>The <code>ui</code> bindings are cached when the view has been rendered and are accessible afterwards.
+The functions for that are defined in <code>Marionette.View</code>:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">Marionette</span><span class="p">.</span><span class="nx">View</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+    <span class="c1">// ...</span>
+
+    <span class="nx">bindUIElements</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">_bindUIElements</span><span class="p">();</span>
+      <span class="nx">_</span><span class="p">.</span><span class="nx">invoke</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_behaviors</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_bindUIElements</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="c1">// This method binds the elements specified in the &quot;ui&quot; hash inside the view&#39;s code with</span>
+    <span class="c1">// the associated jQuery selectors.</span>
+    <span class="nx">_bindUIElements</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">ui</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span><span class="p">;</span> <span class="p">}</span>
+
+      <span class="c1">// store the ui hash in _uiBindings so they can be reset later</span>
+      <span class="c1">// and so re-rendering the view will be able to find the bindings</span>
+      <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_uiBindings</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_uiBindings</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">ui</span><span class="p">;</span>
+      <span class="p">}</span>
+
+      <span class="c1">// get the bindings result, as a function or otherwise</span>
+      <span class="kd">var</span> <span class="nx">bindings</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;_uiBindings&#39;</span><span class="p">);</span>
+
+      <span class="c1">// empty the ui so we don&#39;t have anything to start with</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">ui</span> <span class="o">=</span> <span class="p">{};</span>
+
+      <span class="c1">// bind each of the selectors</span>
+      <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">bindings</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">selector</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">ui</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="nx">selector</span><span class="p">);</span>
+      <span class="p">},</span> <span class="k">this</span><span class="p">);</span>
+    <span class="p">},</span>
+
+    <span class="c1">// ...</span>
+
+<span class="p">})</span>
+</pre></div>
+
+</code></pre>
+<p>The <code>_bindUIElements</code> function gets called by <code>bindUIElements</code> that is invoked when the view has been rendered and before the <code>onRender</code> handler gets executed.</p>
+<p>As you can see, it first copies the defined bindings from <code>ui</code> to <code>_uiBindings</code>, iterates over them and caches the references to the desired nodes which are then available in <code>this.ui</code>.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="k">this</span><span class="p">.</span><span class="nx">ui</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="nx">selector</span><span class="p">);</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>
