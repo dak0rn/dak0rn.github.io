@@ -34,7 +34,7 @@ module.exports = {
 
         const leFilets = files.filter( file => ! file.meta.static )
                     .sort( ({meta: {date: dateA}}, {meta: {date: dateB}}) => dateB - dateA)
-                   .map( file => `<li><a href="${ removeIndexHtml(file.uri) }">${ file.meta.title } (${ _d(file.meta.date) }) </a></li>` )
+                   .map( file => `<li><a href="${ removeIndexHtml(file.uri) }">- ${ file.meta.title } (${ _d(file.meta.date) }) </a></li>` )
                    .join('');
 
         return `${ head(config.title, config.baseUrl) }
