@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>A functional range operator - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/a-functional-range-operator/">/a-functional-range-operator/</a></div>
+        <div>@date 2016-02-14</div>
+        <div>@title A functional range operator</div>
+    </nav><article>
+                <p>While JavaScript offers most of the functional utilites (map, filter, reduce, ...) it lacks a very useful one; <code>range()</code>.
+This function returns a sequence of numbers following these rules:</p>
+<ul>
+<li><code>range(n)</code> returns a sequence from 0 (inclusive) to <code>n</code> (exclusive)</li>
+<li><code>range(n, m)</code> returns a sequence from <code>n</code> (inclusive) to <code>m</code> (exclusive)</li>
+<li><code>range(n, m, s)</code> returns a sequence from <code>n</code> (inclusive) to <code>m</code> (exclusive) increasing numbers with <code>s</code></li>
+</ul>
+<p>In most functional programming languages, applying <code>range()</code> without any arguments returns a sequence of numbers from 0 to infinity created lazily. As JavaScript does not have lazy semantics this rule is omitted.</p>
+<p><img src="/images/range-applied.png" alt=""></p>
+<p>Implementing this function is quite easy. Taking a functional approach has some caveats, though. Using a loop is not possible since this would involve mutating variables and since JavaScript engines currently do not implement Tail Call Optimization recursion is also not applicable here. Creating an array with a desired length, though, is possible.</p>
+<p><img src="/images/array.png" alt=""></p>
+<p>This array then contains a number of <em>empty slots</em> as Firefox calls them. The problem is, though, that mapping an array of empty slots does not return a new array with different values. Luckily, the <code>Array()</code> constructor can be applied with a number of arguments which are then returned as an array.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nb">Array</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span> <span class="o">===</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+</pre></div>
+
+</code></pre>
+<p>This can be used to create an array of <code>undefined</code> values like this:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nb">Array</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nb">Array</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="o">===</span> <span class="p">[</span><span class="kc">undefined</span><span class="p">,</span> <span class="kc">undefined</span><span class="p">,</span> <span class="kc">undefined</span><span class="p">]</span>
+</pre></div>
+
+</code></pre>
+<p>The other parts of the implementation are decisions concerning the arguments (min, max and the step) and the mapping where the desired values are added.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kr">const</span> <span class="nx">range</span> <span class="o">=</span> <span class="p">(</span><span class="nx">min</span><span class="p">,</span> <span class="nx">max</span> <span class="o">=</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">step</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="k">if</span><span class="p">(</span> <span class="kc">null</span> <span class="o">===</span> <span class="nx">max</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="nx">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">min</span><span class="p">);</span>
+
+    <span class="k">if</span><span class="p">(</span> <span class="nx">max</span> <span class="o">&lt;</span> <span class="nx">min</span> <span class="p">)</span>
+        <span class="k">return</span> <span class="nx">range</span><span class="p">(</span><span class="nx">max</span><span class="p">,</span> <span class="nx">min</span><span class="p">).</span><span class="nx">reverse</span><span class="p">();</span>
+
+    <span class="k">return</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nb">Array</span><span class="p">(</span> <span class="p">(</span><span class="nx">max</span> <span class="o">-</span> <span class="nx">min</span><span class="p">)</span> <span class="o">/</span> <span class="nx">step</span> <span class="p">))</span>
+                <span class="p">.</span><span class="nx">map</span><span class="p">(</span> <span class="p">(</span><span class="nx">_</span><span class="p">,</span> <span class="nx">index</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="nx">min</span> <span class="o">+</span> <span class="nx">index</span> <span class="o">*</span> <span class="nx">step</span> <span class="p">);</span>
+<span class="p">};</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

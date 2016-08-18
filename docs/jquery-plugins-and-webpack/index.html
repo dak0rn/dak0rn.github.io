@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>jQuery, plugins and webpack - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/jquery-plugins-and-webpack/">/jquery-plugins-and-webpack/</a></div>
+        <div>@date 2016-02-19</div>
+        <div>@title jQuery, plugins and webpack</div>
+    </nav><article>
+                <p>Using jQuery with plugins in a webpack setup is hard. It is hard because webpack embraces modules and imports (e.g. CommonJS). And jQuery makes itself available in the global namespace and provides its own way to register plugins.</p>
+<p>There are usually two types of plugins:</p>
+<ol>
+<li><em>Legacy</em> plugins that rely on a globally available jQuery instance</li>
+<li><em>Modern</em> plugins that often use <a href="https://github.com/umdjs/umd">UMD</a>. They either use a global jQuery or import it.</li>
+</ol>
+<p>The second way seems pretty clever on a first glance. jQuery gets imported and the plugin is registered.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kr">const</span> <span class="nx">$</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;jQuery&#39;</span><span class="p">);</span>
+<span class="c1">// ...</span>
+<span class="nx">$</span><span class="p">.</span><span class="nx">fn</span><span class="p">.</span><span class="nx">myPlugin</span> <span class="o">=</span> <span class="p">...</span>
+</pre></div>
+
+</code></pre>
+<p>There problem here is, that exports are cached - if jQuery gets required a second time somewhere else in the code the original object is returned. The manipulations done to <code>$.fn</code> are not visible to the rest of the application.</p>
+<h2 id="jquery-webpack">jQuery + webpack</h2>
+<p>To get things to work the following workaround is applied</p>
+<ol>
+<li>Make jQuery available globally</li>
+<li>Always use <code>window.$</code> in the code</li>
+</ol>
+<p>For the global part the <code>expose-loader</code> is used. It adds jQuery to the global scope as <code>$</code> and <code>jQuery</code> whenever it gets imported:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="c1">// webpack.config.js</span>
+<span class="c1">//...</span>
+<span class="nx">module</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">loaders</span><span class="o">:</span> <span class="p">[</span>
+        <span class="c1">// ...</span>
+        <span class="p">{</span> <span class="nx">test</span><span class="o">:</span> <span class="sr">/jquery/</span><span class="p">,</span> <span class="nx">loader</span><span class="o">:</span> <span class="s1">&#39;expose?$!expose?jQuery&#39;</span> <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+</code></pre>
+<p>Now in webpack&#39;s entry point jQuery is imported first and all plugins that rely on it afterwards.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="c1">// webpack entry point</span>
+<span class="kr">import</span> <span class="s1">&#39;jQuery&#39;</span><span class="p">;</span>  <span class="c1">// jQuery is in global scope after this</span>
+<span class="kr">import</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">;</span>
+<span class="kr">import</span> <span class="s1">&#39;eonasdan-bootstrap-datetimepicker&#39;</span><span class="p">;</span>
+<span class="kr">import</span> <span class="s1">&#39;fullpage.js&#39;</span><span class="p">;</span>
+</pre></div>
+
+</code></pre>
+<p>Finally, this globally exposed jQuery has to be used. Thus, scripts need to use <code>window.$</code> instead of requiring it.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre>    <span class="nx">componentDidMount</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kr">const</span> <span class="p">{</span> <span class="nx">inputGroup</span> <span class="p">}</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">refs</span><span class="p">;</span>
+        <span class="kr">const</span> <span class="nx">$inputGroup</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="nx">inputGroup</span><span class="p">);</span>
+
+        <span class="nx">$inputGroup</span><span class="p">.</span><span class="nx">datetimepicker</span><span class="p">();</span>
+    <span class="p">}</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

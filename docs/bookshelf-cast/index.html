@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>bookshelf-cast - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/bookshelf-cast/">/bookshelf-cast/</a></div>
+        <div>@date 2016-03-31</div>
+        <div>@title bookshelf-cast</div>
+    </nav><article>
+                <p>Yesterday I published a library named <a href="https://www.npmjs.com/package/bookshelf-cast">bookshelf-cast</a>. This plugin for the <a href="http://bookshelfjs.org">Bookshelf</a> ORM provides a simple way to cast values retrieved from the database. The idea is basically the same as with <a href="https://laravel.com/docs/5.2/eloquent-mutators#attribute-casting">Attribute casting</a> from Laravel.</p>
+<p>Castings are defined in a <code>.casts</code> property in the model. One can use built-in identifiers or custom functions, attributes without casts assigned will be left untouched.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kr">const</span> <span class="nx">Model</span> <span class="o">=</span> <span class="nx">bookshelf</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+    <span class="nx">casts</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">locked</span><span class="o">:</span> <span class="s1">&#39;boolean&#39;</span><span class="p">,</span>
+        <span class="nx">idStr</span><span class="p">(</span><span class="nx">what</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">what</span><span class="p">,</span> <span class="mi">10</span><span class="p">);</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+
+</code></pre>
+<p>The idea is basically to overwrite <code>Bookshelf.Model.parse()</code> and modify the attributes that should be casted. This plugin reduces the required boilerplate and provides a convenient way to define casts.</p>
+<p>As usual, this project is Open Source, available on <a href="https://github.com/dak0rn/bookshelf-cast">GitHub</a> and <a href="https://www.npmjs.com/package/bookshelf-cast">npm</a>. There are a couple of <a href="https://github.com/dak0rn/bookshelf-cast/blob/master/test.js">tests</a>, written with <a href="https://github.com/sindresorhus/ava">ava</a>.</p>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

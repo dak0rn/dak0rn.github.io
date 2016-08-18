@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sortable Backbone.Collection - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/sortable-backbone-collection/">/sortable-backbone-collection/</a></div>
+        <div>@date 2015-06-18</div>
+        <div>@title Sortable Backbone.Collection</div>
+    </nav><article>
+                <p>In a <a href="/search-queries/">recent post</a> I described how complex search queries can be parsed to create the base for a cascading search function. The idea was that a search string like this</p>
+<pre><code><div class="highlight"><pre><span class="nx">genre</span><span class="o">:</span><span class="nx">jazz</span> <span class="nx">artist</span><span class="o">:</span><span class="s2">&quot;Horace Silver&quot;</span> <span class="nx">the</span> <span class="s2">&quot;jazz messengers&quot;</span>
+</pre></div>
+
+</code></pre><p>is converted into an array of strings an objects like this one:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="p">[</span> <span class="p">{</span><span class="nx">genre</span><span class="o">:</span> <span class="s1">&#39;jazz&#39;</span><span class="p">},</span> <span class="p">{</span><span class="nx">artist</span><span class="o">:</span> <span class="s1">&#39;Horace Silver&#39;</span><span class="p">},</span> <span class="s1">&#39;the&#39;</span><span class="p">,</span> <span class="s1">&#39;jazz messengers&#39;</span> <span class="p">]</span>
+</pre></div>
+
+</code></pre>
+<p>Given such an array with criteria, it is quite easy to write a search algorithm that filters a collection of models using two rules:</p>
+<ul>
+<li>If you have a criteria that is an object filter for the given model attributes only</li>
+<li>If you have a string criteria filter all model attributes for it</li>
+</ul>
+<h2 id="what-s-bad-about-backbone-s-collections">What&#39;s bad about Backbone&#39;s collections</h2>
+<p>One might think <em>Hey, that looks like we can use <code>_.where</code> in Backbone.Collection</em>.</p>
+<p>While <code>Backbone.Collect.where()</code>, the built-in filter function from underscore (or $alternative), allows you to filter the stored models it has a major downside when it comes to views: the filter
+function returns an array.</p>
+<p>Thus, you often find code like this:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">models</span> <span class="o">=</span> <span class="nx">collection</span><span class="p">.</span><span class="nx">find</span><span class="p">(</span> <span class="nx">generateFilterFunction</span><span class="p">(</span><span class="nx">criteria</span><span class="p">)</span> <span class="p">);</span>
+
+<span class="c1">// Updates the view</span>
+<span class="nx">viewCollection</span><span class="p">.</span><span class="nx">reset</span><span class="p">();</span>
+<span class="nx">viewCollection</span><span class="p">.</span><span class="nx">set</span><span class="p">(</span><span class="nx">models</span><span class="p">);</span>
+</pre></div>
+
+</code></pre>
+<p>What happens here is that two collections are used; one stores all models while the other stores only models filtered from the original collection.</p>
+<p>But that is not what I want. I don&#39;t want to have two collections that have to be synced manually all the time.</p>
+<p>Thus, I have written this handy Backbone.Collection that keeps a copy of itself internally. Even though it does not overwrite any built-in filter method it is not meant to be used with them.</p>
+<h2 id="what-you-need">What you need</h2>
+<p>As with the linked example above you have to include/export/... Backbone and underscore or lodash. If you use userscore keep in mind that the query parsing function needs <code>_.trim()</code>. Thus, you have to implement that manually or add <code>underscore.string</code>.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+    <span class="c1">// Internal collection</span>
+    <span class="nx">_raw</span><span class="o">:</span> <span class="k">new</span> <span class="p">(</span><span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span><span class="nx">model</span><span class="o">:</span><span class="nx">Model</span><span class="p">}))(),</span>
+    <span class="c1">// Search term</span>
+    <span class="nx">_term</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+
+
+    <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">// Listen to events that change the collection</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;sync&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_synced</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_added</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;remove&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">_removed</span><span class="p">,</span> <span class="k">this</span> <span class="p">);</span>
+    <span class="p">},</span>
+
+
+    <span class="nx">_synced</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">stuff</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nx">data</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_raw</span><span class="p">.</span><span class="nx">reset</span><span class="p">();</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_raw</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">data</span><span class="p">);</span>
+
+            <span class="k">if</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">)</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">filterCollection</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">);</span>
+        <span class="p">}</span>        
+    <span class="p">},</span>
+
+
+    <span class="nx">_added</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nx">model</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_raw</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">model</span><span class="p">);</span>
+
+            <span class="k">if</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">)</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">filterCollection</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+
+
+    <span class="nx">_removed</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">model</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nx">model</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_raw</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">model</span><span class="p">);</span>
+
+            <span class="k">if</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">)</span>
+                <span class="k">this</span><span class="p">.</span><span class="nx">filterCollection</span><span class="p">(</span> <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+
+
+    <span class="nx">_filterArray</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">models</span><span class="p">,</span> <span class="nx">crit</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span><span class="p">(</span> <span class="mi">0</span> <span class="o">===</span> <span class="nx">models</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span>
+            <span class="k">return</span> <span class="nx">models</span><span class="p">;</span>
+
+        <span class="kd">var</span> <span class="nx">t</span> <span class="o">=</span> <span class="p">[];</span>
+
+        <span class="c1">// Loop variables</span>
+        <span class="kd">var</span> <span class="nx">i</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">len</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">prop</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">val</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">mval</span><span class="p">;</span>
+        <span class="kd">var</span> <span class="nx">attrs</span> <span class="o">=</span> <span class="p">{};</span>            <span class="c1">// Object with criterias</span>
+        <span class="kd">var</span> <span class="nx">keys</span> <span class="o">=</span> <span class="p">[];</span>            <span class="c1">// Keys to compare. Stored for performance.</span>
+
+        <span class="c1">// If we got an object we compare all the keys</span>
+        <span class="c1">// contained in the object with the models</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isObject</span><span class="p">(</span><span class="nx">crit</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+            <span class="nx">attrs</span> <span class="o">=</span> <span class="nx">crit</span><span class="p">;</span>
+            <span class="nx">keys</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">attrs</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">// If we get something else we compare all attributes</span>
+        <span class="c1">// with whatever we got</span>
+        <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">keys</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span> <span class="nx">models</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">attributes</span> <span class="p">);</span>
+            <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">keys</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">k</span><span class="p">)</span> <span class="p">{</span> <span class="nx">attrs</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="o">=</span> <span class="nx">crit</span><span class="p">;</span> <span class="p">});</span>
+        <span class="p">}</span>
+
+        <span class="c1">// all models ...</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">models</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">target</span><span class="p">)</span> <span class="p">{</span>
+
+            <span class="c1">// and all attributes</span>
+            <span class="k">for</span><span class="p">(</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">len</span> <span class="o">=</span> <span class="nx">keys</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">len</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="nx">prop</span> <span class="o">=</span> <span class="nx">keys</span><span class="p">[</span><span class="nx">i</span><span class="p">];</span>
+                <span class="nx">val</span>  <span class="o">=</span> <span class="nx">attrs</span><span class="p">[</span><span class="nx">prop</span><span class="p">];</span>
+                <span class="nx">mval</span> <span class="o">=</span> <span class="nx">target</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="nx">prop</span><span class="p">);</span>
+
+                <span class="k">if</span><span class="p">(</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isUndefined</span><span class="p">(</span><span class="nx">mval</span><span class="p">)</span> <span class="o">||</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isNull</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span>  <span class="p">)</span>
+                    <span class="k">continue</span><span class="p">;</span>
+
+                <span class="c1">// We only compare strings!</span>
+                <span class="nx">val</span>  <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">+</span><span class="nx">val</span> <span class="p">).</span><span class="nx">toLocaleLowerCase</span><span class="p">();</span>
+                <span class="nx">mval</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">+</span><span class="nx">mval</span><span class="p">).</span><span class="nx">toLocaleLowerCase</span><span class="p">();</span>
+
+                <span class="c1">// Contained or equal?</span>
+                <span class="k">if</span><span class="p">(</span> <span class="nx">val</span> <span class="o">===</span> <span class="nx">mval</span> <span class="o">||</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;</span> <span class="nx">mval</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">t</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">target</span><span class="p">);</span>
+                    <span class="k">break</span><span class="p">;</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span> <span class="k">this</span><span class="p">);</span>
+        <span class="k">return</span> <span class="nx">t</span><span class="p">;</span>
+    <span class="p">},</span>
+
+    <span class="nx">resetFilter</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">filterCollection</span><span class="p">();</span>
+    <span class="p">},</span>
+
+    <span class="nx">_parseQuery</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">what</span><span class="p">){</span>
+        <span class="kd">var</span> <span class="nx">terms</span> <span class="o">=</span> <span class="p">[];</span>
+
+        <span class="c1">// Split at spaces but keep quoted words together</span>
+        <span class="kd">var</span> <span class="nx">parts</span> <span class="o">=</span> <span class="nx">what</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="sr">/(?:[^\s&#39;&quot;]+|[&#39;&quot;][^&#39;&quot;]*[&#39;&quot;])+/g</span><span class="p">);</span>
+
+        <span class="c1">// Process each part</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span><span class="nx">parts</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">){</span>
+
+            <span class="c1">// Remove leading and trailing quotes</span>
+            <span class="nx">e</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">trim</span><span class="p">(</span><span class="nx">e</span><span class="p">,</span><span class="s1">&#39;&quot;\&#39;&#39;</span><span class="p">);</span>
+
+            <span class="c1">// Skip if invalid</span>
+            <span class="k">if</span><span class="p">(</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isEmpty</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">)</span>
+                <span class="k">return</span><span class="p">;</span>
+
+            <span class="c1">// Find the position of the first colon</span>
+            <span class="kd">var</span> <span class="nx">colon</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">);</span>
+
+            <span class="c1">// If there is no colon just add the single string</span>
+            <span class="k">if</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span> <span class="o">===</span> <span class="nx">colon</span> <span class="p">)</span> <span class="p">{</span>
+                <span class="nx">terms</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+                <span class="k">return</span><span class="p">;</span>
+            <span class="p">}</span>
+
+            <span class="c1">// Get the part before the colon</span>
+            <span class="kd">var</span> <span class="nx">key</span> <span class="o">=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">colon</span><span class="p">);</span>
+
+            <span class="c1">// Criteria object</span>
+            <span class="kd">var</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{};</span>
+
+                       <span class="c1">// Remove quotes from the part after</span>
+                       <span class="c1">// the colon</span>
+            <span class="nx">obj</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">trim</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="nx">colon</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;\&#39;&quot;&#39;</span><span class="p">);</span>
+
+              <span class="c1">// Add the criteria</span>
+            <span class="nx">terms</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">obj</span><span class="p">);</span>
+
+        <span class="p">});</span>
+
+        <span class="k">return</span> <span class="nx">terms</span><span class="p">;</span>
+    <span class="p">},</span>
+
+    <span class="nx">filterCollection</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">what</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="kd">var</span> <span class="nx">filtered</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_raw</span><span class="p">.</span><span class="nx">slice</span><span class="p">();</span>
+
+        <span class="k">if</span><span class="p">(</span> <span class="nx">arguments</span><span class="p">.</span><span class="nx">length</span> <span class="p">)</span> <span class="p">{</span>
+
+            <span class="c1">// Parse search term if it&#39;s a string</span>
+            <span class="k">if</span><span class="p">(</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isString</span><span class="p">(</span><span class="nx">what</span><span class="p">)</span> <span class="p">)</span>
+                <span class="nx">what</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_parseQuery</span><span class="p">(</span><span class="nx">what</span><span class="p">);</span>
+            <span class="c1">// Not pretty but faster</span>
+            <span class="k">else</span> <span class="k">if</span><span class="p">(</span> <span class="o">!</span> <span class="nx">_</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">what</span><span class="p">)</span> <span class="p">)</span>
+                <span class="k">return</span><span class="p">;</span>
+
+            <span class="c1">// Cache</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">_term</span> <span class="o">=</span> <span class="nx">what</span><span class="p">;</span>
+
+            <span class="nx">_</span><span class="p">.</span><span class="nx">each</span><span class="p">(</span> <span class="nx">what</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">criteria</span><span class="p">){</span>
+                <span class="nx">filtered</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_filterArray</span><span class="p">(</span><span class="nx">filtered</span><span class="p">,</span> <span class="nx">criteria</span><span class="p">);</span>
+            <span class="p">},</span> <span class="k">this</span> <span class="p">);</span>
+
+        <span class="p">}</span>
+
+        <span class="cm">/*</span>
+<span class="cm">         * The collection changes only if</span>
+<span class="cm">         * - there is a different number of models now or</span>
+<span class="cm">         * - if there are new models that matched the criteria</span>
+<span class="cm">         */</span>
+        <span class="k">if</span><span class="p">(</span> <span class="nx">filtered</span><span class="p">.</span><span class="nx">length</span> <span class="o">!==</span> <span class="k">this</span><span class="p">.</span><span class="nx">models</span><span class="p">.</span><span class="nx">length</span> <span class="o">||</span>
+             <span class="nx">_</span><span class="p">.</span><span class="nx">some</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">models</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="o">!</span> <span class="nx">_</span><span class="p">.</span><span class="nx">contains</span><span class="p">(</span><span class="nx">filtered</span><span class="p">,</span><span class="nx">e</span><span class="p">);</span> <span class="p">}</span> <span class="p">)</span> <span class="p">)</span> <span class="p">{</span>
+
+            <span class="k">this</span><span class="p">.</span><span class="nx">reset</span><span class="p">(</span><span class="kc">undefined</span><span class="p">,{</span><span class="nx">silent</span><span class="o">:</span><span class="kc">true</span><span class="p">});</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">filtered</span><span class="p">,</span> <span class="p">{</span><span class="nx">silent</span><span class="o">:</span><span class="kc">true</span><span class="p">});</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s1">&#39;change&#39;</span><span class="p">);</span>                    <span class="c1">// Render again</span>
+        <span class="p">}</span>
+
+    <span class="p">}</span>
+
+<span class="p">});</span>
+</pre></div>
+
+</code></pre>
+<p>The two important functions here are <code>filterCollection()</code> and <code>resetFilter()</code>. The latter resets the collection by adding all originally contained models again.</p>
+<p>The former function is responsible of filtering the collection. It stores all models in a Backbone.Collection internally. <code>filterCollection()</code> accepts both strings and array. Strings are converted to an array of search criteria automatically using the <code>_parseQuery()</code> function described in the referenced article.</p>
+<p>The collection filters its models if you add or remove one. Thus, an added model may disappear automatically. This is very useful if the user searches for something while the collection is being modified.</p>
+<p>The collection updates itself only if the result set changes. If you filter a filtered collection again (e.g. because the user changed the search term) and the models stay the same you will not receive any change event.</p>
+<h2 id="natives">Natives</h2>
+<p>As written <a href="http://backbonejs.org/#Collection-Underscore-Methods">in the documentation</a> Backbone.Collection supports underscore/lodash functions to retrieve a (sub-) set of models. If you do not overwrite them these functions will only operate on the filtered collection.</p>
+<h2 id="require-js">require.js</h2>
+<p>Since I use require.js for a lot of my front-end applications this code is taken right out of one. So, you can paste it into a require.js block to use it. Keep in mind to include the correct model.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">define</span><span class="p">([</span>
+     <span class="s1">&#39;backbone&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;lodash&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;../model/Album&#39;</span><span class="p">,</span>
+ <span class="p">],</span> <span class="kd">function</span><span class="p">(</span><span class="nx">Backbone</span><span class="p">,</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">Model</span><span class="p">)</span> <span class="p">{</span>
+
+     <span class="k">return</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Collection</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span> <span class="p">...</span> <span class="p">});</span>
+ <span class="p">});</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Laravel's Eloquent with GUIDs - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/laravels-eloquent-with-guids/">/laravels-eloquent-with-guids/</a></div>
+        <div>@date 2016-02-01</div>
+        <div>@title Laravel's Eloquent with GUIDs</div>
+    </nav><article>
+                <p>Laravel&#39;s Eloquent is a really great ORM that makes working with a relational database a real pleasure. It works out of the box with auto incremented primary keys for models but it is quite simple to use a different kind, too. In our case, we needed GUIDs (<code>uniqueidentifier</code> in SQL Server).</p>
+<p>Moving to GUIDs/UUIDs is easy. Laravel&#39;s Schema builder actually provides an <code>uuid()</code> type that uses UUIDs if natively available.</p>
+<pre><code class="lang-php"><div class="highlight"><pre><span class="x">// In migration file</span>
+<span class="x">$table-&gt;uuid(&#39;idUser&#39;)-&gt;default( DB::raw(&#39;NewID()&#39;) );</span>
+<span class="x">$table-&gt;primary(&#39;idUser&#39;);</span>
+</pre></div>
+
+</code></pre>
+<p>Now that you do no longer use a auto incremented key you have to tell Eloquent about that. The <code>$incrementing</code> key has acutally to be <code>public</code>. If you omit this you will experience weird behavior sometimes.</p>
+<pre><code class="lang-php"><div class="highlight"><pre><span class="x">/**</span>
+<span class="x"> * We do not use a auto incremented key here!</span>
+<span class="x"> */</span>
+<span class="x">public $incrementing = false;</span>
+</pre></div>
+
+</code></pre>
+<p>While this works fine so far, there is still something that causes trouble; if you create a model in the database the new primary key will not be set in the model instance. Even though we use <code>DEFAULT NewID()</code> for the key, the generated ID will not be available in the model after creation. The reason for that can be found in the <a href="https://github.com/illuminate/database/blob/master/Eloquent/Model.php#L1639-L1651">Model sources</a>:</p>
+<p><img src="/images/laravel-model.png" alt="Laravel Model source"></p>
+<p>The tl;dr of this: if you do not use auto incremented keys provide them manually. The idea is now to manually select a GUID from the database, set it as the model&#39;s primary key and store it in the database afterwards. This is especially required if you want to attach relationships are creating a new model since the primary key would not be available then.</p>
+<p>Luckily, Eloquent provides a quite elegant way to accomplish that; the model&#39;s static <code>boot</code> function. A creation handler is registered there which does the GUID obtaining. It also takes care of differently named primary keys. The code is stored in a model all other models are inheriting from.</p>
+<pre><code class="lang-php"><div class="highlight"><pre><span class="cp">&lt;?php</span>
+<span class="k">namespace</span> <span class="nx">App\Models</span><span class="p">;</span>
+
+<span class="k">use</span> <span class="nx">Illuminate\Database\Eloquent\Model</span><span class="p">;</span>
+<span class="k">use</span> <span class="nx">DB</span><span class="p">;</span>
+
+<span class="k">abstract</span> <span class="k">class</span> <span class="nc">BaseModel</span> <span class="k">extends</span> <span class="nx">Model</span> <span class="p">{</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * We do not use a auto incremented key here!</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="nv">$incrementing</span> <span class="o">=</span> <span class="k">false</span><span class="p">;</span>
+
+    <span class="sd">/**</span>
+<span class="sd">     * Boot function of the model</span>
+<span class="sd">     */</span>
+    <span class="k">public</span> <span class="k">static</span> <span class="k">function</span> <span class="nf">boot</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">parent</span><span class="o">::</span><span class="na">boot</span><span class="p">();</span>
+
+        <span class="c1">// Hook when a model is created</span>
+        <span class="k">static</span><span class="o">::</span><span class="na">creating</span><span class="p">(</span><span class="k">function</span> <span class="p">(</span><span class="nv">$model</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// Select a new ID</span>
+            <span class="nv">$result</span> <span class="o">=</span> <span class="nx">DB</span><span class="o">::</span><span class="na">select</span><span class="p">(</span> <span class="nx">DB</span><span class="o">::</span><span class="na">raw</span><span class="p">(</span><span class="s1">&#39;Select NewID() NewUUID&#39;</span><span class="p">)</span> <span class="p">);</span>
+
+            <span class="nv">$model</span><span class="o">-&gt;</span><span class="p">{</span><span class="nv">$model</span><span class="o">-&gt;</span><span class="na">getKeyName</span><span class="p">()}</span> <span class="o">=</span> <span class="nv">$result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-&gt;</span><span class="na">NewUUID</span><span class="p">;</span>
+        <span class="p">});</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>

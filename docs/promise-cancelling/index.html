@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Automated promise cancelling - 65535th</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="/rmwf/webfont.css" />
+        <link rel="stylesheet" href="/lib.css" />
+    </head>
+    <body><main>
+                <article>
+    <nav>
+        <div>@see <a href="/">Home</a> <a href="/about/">About</a></div>
+        <div></div>
+        <div>@page <a href="/promise-cancelling/">/promise-cancelling/</a></div>
+        <div>@date 2015-11-08</div>
+        <div>@title Automated promise cancelling</div>
+    </nav><article>
+                <p>Whenever you work with promises to encapsulate asynchronous tasks it might be useful to cancel operations after a certain time to recognize operation timeouts. In a concrete case, an application uses a component that abstracts a remote API and uses promises to enable waiting for responses. After a 30 second timeout pending operations should be cancelled and a warning should be displayed.</p>
+<p>From an architectural point of view, this change to the API component behavior should be implemented with as less code changes as possible. All network requests are enapsulated in a single function <code>_requestAPIEndpoint()</code> and that is where the promise manipulation will happen.</p>
+<p>The idea is basically to add a promise that gets rejected after some time. The <code>Promise.any()</code> function is the helper utility that makes this possible; it takes a number or Promises and returns a Promises that is resolved or rejected whenever one of the given Promises is resolved or rejected. Any other promise settled after the first one is ignored.</p>
+<p><code>Promise.any()</code> is used to create a joined Promise of the network Promise and the one that gets always rejected. This functionality is implemented in a little helper function.</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre>    <span class="c1">// ...</span>
+
+    <span class="c1">//+ _timeoutHandler :: Promise -&gt; Promise</span>
+    <span class="nx">_timeoutHandler</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">promise</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">rejection</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WinJS</span><span class="p">.</span><span class="nx">Promise</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">_</span><span class="p">,</span> <span class="nx">r</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">bind</span><span class="p">({},</span> <span class="s1">&#39;timeout&#39;</span><span class="p">),</span> <span class="nx">Configuration</span><span class="p">.</span><span class="nx">networkTimeout</span><span class="p">);</span>
+        <span class="p">});</span>
+
+        <span class="k">return</span> <span class="nx">WinJS</span><span class="p">.</span><span class="nx">Promise</span><span class="p">.</span><span class="nx">any</span><span class="p">([</span><span class="nx">promise</span><span class="p">,</span> <span class="nx">rejection</span><span class="p">]).</span><span class="nx">then</span><span class="p">(</span><span class="kd">function</span> <span class="p">(</span><span class="nx">info</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="nx">info</span><span class="p">.</span><span class="nx">value</span><span class="p">.</span><span class="nx">_value</span><span class="p">;</span>
+        <span class="p">});</span>
+    <span class="p">},</span>
+</pre></div>
+
+</code></pre>
+<p>All we have to do now is to manipulate the return value by passing the network promise to <code>_timeoutHandler</code>:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre>    <span class="c1">// ...</span>
+
+    <span class="nx">_requestAPIEndpoint</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+
+        <span class="c1">// much business logic, very secret, so code</span>
+
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_timeoutHandler</span><span class="p">(</span> <span class="nx">client</span><span class="p">.</span><span class="nx">getStringAsync</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span> <span class="p">);</span>
+    <span class="p">}</span>
+</pre></div>
+
+</code></pre>
+
+            </div>
+        </article></main>
+<footer><a href="http://vimgifs.com/" target="_blank">:wq</a></footer>
+</body></html>
